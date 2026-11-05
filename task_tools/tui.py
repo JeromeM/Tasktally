@@ -109,6 +109,7 @@ class TaskApp(App):
         Binding("g", "tags", "Tags"),
         Binding("x", "delete", "Delete"),
         Binding("y", "toggle_day", "Today/Yesterday"),
+        Binding("tab", "app.focus_next", "Switch zone"),
         Binding("r", "refresh", "Refresh", show=False),
         Binding("q", "quit", "Quit"),
     ]
@@ -125,7 +126,9 @@ class TaskApp(App):
         with Horizontal(id="bottom"):
             with Vertical(id="tags-pane"):
                 yield Static("By tag", classes="pane-title")
-                yield DataTable(id="tags", cursor_type="none")
+                tags = DataTable(id="tags", cursor_type="none")
+                tags.can_focus = False
+                yield tags
             with Vertical(id="todo-pane"):
                 yield Static("To do", classes="pane-title")
                 yield DataTable(id="todo", cursor_type="row", zebra_stripes=True)
