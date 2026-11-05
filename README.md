@@ -46,20 +46,17 @@ Update with `uv tool upgrade tasktally`.
 
 ```sh
 tally                       # open the interactive view
+tally summary               # yesterday, today and the to-do list
 tally today                 # text report for today
 tally yesterday             # text report for yesterday
 tally list status:pending   # list tasks matching any Taskwarrior filter
 tally setup                 # enable time tracking in ~/.taskrc (safe to rerun)
 ```
 
-A handy shell function for a daily summary:
+For a daily summary (yesterday, today and the to-do list), add an alias to your shell config:
 
 ```sh
-today() {
-  echo "== YESTERDAY ==";  tally yesterday
-  echo "\n== TODAY ==";    tally today
-  echo "\n== TO DO ==";    tally list status:pending
-}
+alias today='tally summary'
 ```
 
 ### Interactive view

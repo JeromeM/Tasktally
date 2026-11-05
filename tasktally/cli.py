@@ -48,6 +48,20 @@ def report_list(filter_args):
     print_rows(formatted)
 
 
+def section(title):
+    line = "=" * 42
+    print(f"\n{line}\n {title}\n{line}")
+
+
+def summary():
+    for label, days_ago in (("📅 YESTERDAY", 1), ("📅 TODAY", 0)):
+        section(f"{label} — {core.day_start(days_ago).strftime('%A %d %B')}")
+        report_day(days_ago)
+    section("🟡 TO DO")
+    report_list(["status:pending"])
+    print()
+
+
 def setup():
     taskrc = Path(os.environ.get("TASKRC", Path.home() / ".taskrc")).expanduser()
     if not shutil.which("task"):
@@ -70,6 +84,7 @@ def setup():
 
 
 USAGE = """usage: tally                    open the interactive view
+       tally summary            print yesterday, today and the to-do list
        tally today | yesterday  print the daily report
        tally list [filter...]   print tasks matching a Taskwarrior filter
        tally setup              enable time tracking in ~/.taskrc"""
@@ -84,6 +99,8 @@ def main():
         report_day(0 if args[0] == "today" else 1)
     elif args[0] == "list":
         report_list(args[1:])
+    elif args == ["summary"]:
+        summary()
     elif args == ["setup"]:
         setup()
     else:
