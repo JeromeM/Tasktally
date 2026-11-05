@@ -109,7 +109,7 @@ class TaskApp(App):
         Binding("g", "tags", "Tags"),
         Binding("x", "delete", "Delete"),
         Binding("y", "toggle_day", "Today/Yesterday"),
-        Binding("tab", "app.focus_next", "Switch zone"),
+        Binding("tab", "app.focus_next", "Switch zone", priority=True),
         Binding("r", "refresh", "Refresh", show=False),
         Binding("q", "quit", "Quit"),
     ]
