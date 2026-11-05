@@ -2,7 +2,6 @@
 set -eu
 
 SOURCE="${TASKTALLY_SOURCE:-git+https://github.com/JeromeM/Tasktally}"
-TASKRC="${TASKRC:-$HOME/.taskrc}"
 
 info() { printf '\033[1;34m==>\033[0m %s\n' "$1"; }
 warn() { printf '\033[1;33mwarning:\033[0m %s\n' "$1"; }
@@ -59,16 +58,6 @@ case "$(task --version)" in
   1.*|2.[0-5].*) warn "Taskwarrior $(task --version) is old, Tasktally is tested with 2.6+ and 3.x" ;;
 esac
 
-info "Enabling time tracking in $TASKRC"
-if [ ! -f "$TASKRC" ]; then
-  printf 'data.location=%s\n' "$HOME/.task" > "$TASKRC"
-fi
-if grep -q '^journal.time=' "$TASKRC"; then
-  sed -i.bak 's/^journal\.time=.*/journal.time=on/' "$TASKRC" && rm -f "$TASKRC.bak"
-else
-  printf 'journal.time=on\n' >> "$TASKRC"
-fi
-
 info "Checking uv"
 if ! has uv; then
   curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -80,6 +69,10 @@ info "Installing Tasktally"
 uv tool install --force "$SOURCE"
 
 BIN_DIR="$(uv tool dir --bin)"
+
+info "Enabling time tracking"
+"$BIN_DIR/tally" setup
+
 case ":$PATH:" in
   *":$BIN_DIR:"*)
     info "Done! Run 'tally' to start"

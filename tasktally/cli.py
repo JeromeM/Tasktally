@@ -1,4 +1,8 @@
+import os
+import re
+import shutil
 import sys
+from pathlib import Path
 
 from . import core
 
@@ -44,9 +48,31 @@ def report_list(filter_args):
     print_rows(formatted)
 
 
+def setup():
+    taskrc = Path(os.environ.get("TASKRC", Path.home() / ".taskrc")).expanduser()
+    if not shutil.which("task"):
+        print("Taskwarrior is not installed: https://taskwarrior.org/download/")
+        sys.exit(1)
+    if not taskrc.exists():
+        taskrc.write_text(f"data.location={Path.home() / '.task'}\njournal.time=on\n")
+        print(f"Created {taskrc} with time tracking enabled")
+        return
+    content = taskrc.read_text()
+    if re.search(r"^journal\.time=on\s*$", content, re.MULTILINE):
+        print(f"Time tracking already enabled in {taskrc}")
+        return
+    if re.search(r"^journal\.time=", content, re.MULTILINE):
+        content = re.sub(r"^journal\.time=.*$", "journal.time=on", content, flags=re.MULTILINE)
+    else:
+        content += ("" if content.endswith("\n") or not content else "\n") + "journal.time=on\n"
+    taskrc.write_text(content)
+    print(f"Enabled time tracking in {taskrc}")
+
+
 USAGE = """usage: tally                    open the interactive view
        tally today | yesterday  print the daily report
-       tally list [filter...]   print tasks matching a Taskwarrior filter"""
+       tally list [filter...]   print tasks matching a Taskwarrior filter
+       tally setup              enable time tracking in ~/.taskrc"""
 
 
 def main():
@@ -58,6 +84,8 @@ def main():
         report_day(0 if args[0] == "today" else 1)
     elif args[0] == "list":
         report_list(args[1:])
+    elif args == ["setup"]:
+        setup()
     else:
         print(USAGE)
         sys.exit(0 if args[0] in ("-h", "--help") else 1)

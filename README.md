@@ -23,8 +23,8 @@ curl -LsSf https://raw.githubusercontent.com/JeromeM/Tasktally/main/install.sh |
 The script:
 
 1. installs [Taskwarrior](https://taskwarrior.org) if needed — Homebrew on macOS; apt, dnf, pacman, zypper or apk on Linux (may ask for your `sudo` password),
-2. enables `journal.time=on` in `~/.taskrc`, so every start/stop is recorded as a timestamped annotation — this is what Tasktally uses to compute time,
-3. installs [uv](https://docs.astral.sh/uv/) if needed, then Tasktally itself.
+2. installs [uv](https://docs.astral.sh/uv/) if needed, then Tasktally itself,
+3. runs `tally setup` to enable `journal.time=on` in `~/.taskrc`, so every start/stop is recorded as a timestamped annotation — this is what Tasktally uses to compute time.
 
 Running it again is safe and updates Tasktally to the latest version.
 
@@ -36,7 +36,7 @@ Requirements: Taskwarrior 2.6+ (tested with 3.x) and uv.
 ```sh
 brew install task uv            # or your distribution's packages
 uv tool install git+https://github.com/JeromeM/Tasktally
-echo "journal.time=on" >> ~/.taskrc
+tally setup
 ```
 
 Update with `uv tool upgrade tasktally`.
@@ -49,6 +49,7 @@ tally                       # open the interactive view
 tally today                 # text report for today
 tally yesterday             # text report for yesterday
 tally list status:pending   # list tasks matching any Taskwarrior filter
+tally setup                 # enable time tracking in ~/.taskrc (safe to rerun)
 ```
 
 A handy shell function for a daily summary:
