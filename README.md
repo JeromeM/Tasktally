@@ -19,26 +19,35 @@ Daily time tracking on top of [Taskwarrior](https://taskwarrior.org): see how mu
 - **Manual time adjustments** for when you forgot to start the clock.
 - Plain Taskwarrior underneath: everything stays usable with the `task` command.
 
-## Requirements
-
-- [Taskwarrior](https://taskwarrior.org) 3.x
-- Python 3.11+ and [uv](https://docs.astral.sh/uv/)
-
 ## Installation
 
+On macOS or Linux:
+
 ```sh
-brew install task uv
+curl -LsSf https://raw.githubusercontent.com/JeromeM/Tasktally/main/install.sh | sh
+```
+
+The script:
+
+1. installs [Taskwarrior](https://taskwarrior.org) if needed — Homebrew on macOS; apt, dnf, pacman, zypper or apk on Linux (may ask for your `sudo` password),
+2. enables `journal.time=on` in `~/.taskrc`, so every start/stop is recorded as a timestamped annotation — this is what Tasktally uses to compute time,
+3. installs [uv](https://docs.astral.sh/uv/) if needed, then Tasktally itself.
+
+Running it again is safe and updates Tasktally to the latest version.
+
+<details>
+<summary>Manual installation</summary>
+
+Requirements: Taskwarrior 2.6+ (tested with 3.x) and uv.
+
+```sh
+brew install task uv            # or your distribution's packages
 uv tool install git+https://github.com/JeromeM/Tasktally
 echo "journal.time=on" >> ~/.taskrc
 ```
 
-`journal.time=on` makes Taskwarrior record every start/stop as a timestamped annotation, which is what Tasktally uses to compute time.
-
-To update later:
-
-```sh
-uv tool upgrade tasktally
-```
+Update with `uv tool upgrade tasktally`.
+</details>
 
 ## Usage
 
