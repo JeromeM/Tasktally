@@ -2,7 +2,11 @@ import os
 import re
 import shutil
 import sys
+from importlib import metadata
 from pathlib import Path
+from typing import Annotated
+
+import typer
 
 from . import core
 
@@ -83,29 +87,76 @@ def setup():
     print(f"Enabled time tracking in {taskrc}")
 
 
-USAGE = """usage: tally                    open the interactive view
-       tally summary            print yesterday, today and the to-do list
-       tally today | yesterday  print the daily report
-       tally list [filter...]   print tasks matching a Taskwarrior filter
-       tally setup              enable time tracking in ~/.taskrc"""
+app = typer.Typer(
+    invoke_without_command=True,
+    no_args_is_help=False,
+    add_completion=True,
+    rich_markup_mode="rich",
+)
+
+
+def version_callback(value: bool):
+    if value:
+        print(f"tasktally {metadata.version('tasktally')}")
+        raise typer.Exit()
+
+
+@app.callback()
+def main_callback(
+    ctx: typer.Context,
+    version: Annotated[
+        bool, typer.Option("--version", "-V", callback=version_callback, is_eager=True, help="Show the version and exit.")
+    ] = False,
+):
+    """Daily time tracking on top of Taskwarrior.
+
+    Run [bold]tally[/bold] without a command to open the interactive view.
+    """
+    if ctx.invoked_subcommand is None:
+        from .tui import main as tui_main
+
+        tui_main()
+
+
+@app.command()
+def today():
+    """Print today's report: time per task and per tag."""
+    report_day(0)
+
+
+@app.command()
+def yesterday():
+    """Print yesterday's report: time per task and per tag."""
+    report_day(1)
+
+
+@app.command("summary")
+def summary_command():
+    """Print yesterday, today and the to-do list."""
+    summary()
+
+
+@app.command(
+    "list",
+    options_metavar="[FILTER]...",
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
+)
+def list_command(ctx: typer.Context):
+    """Print tasks matching a Taskwarrior filter.
+
+    Example: [bold]tally list status:pending +sentry[/bold]
+    """
+    report_list(ctx.args)
+
+
+@app.command("setup")
+def setup_command():
+    """Enable time tracking (journal.time=on) in your Taskwarrior config."""
+    setup()
 
 
 def main():
-    args = sys.argv[1:]
-    if not args:
-        from .tui import main as tui_main
-        tui_main()
-    elif args == ["today"] or args == ["yesterday"]:
-        report_day(0 if args[0] == "today" else 1)
-    elif args[0] == "list":
-        report_list(args[1:])
-    elif args == ["summary"]:
-        summary()
-    elif args == ["setup"]:
-        setup()
-    else:
-        print(USAGE)
-        sys.exit(0 if args[0] in ("-h", "--help") else 1)
+    app()
 
 
 if __name__ == "__main__":

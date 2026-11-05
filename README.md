@@ -51,7 +51,10 @@ tally today                 # text report for today
 tally yesterday             # text report for yesterday
 tally list status:pending   # list tasks matching any Taskwarrior filter
 tally setup                 # enable time tracking in ~/.taskrc (safe to rerun)
+tally --help                # all commands and options
 ```
+
+Shell completion can be enabled with `tally --install-completion`.
 
 For a daily summary (yesterday, today and the to-do list), add an alias to your shell config:
 

@@ -8,7 +8,7 @@ license-files = ["LICENSE"]
 authors = [{ name = "Jérôme Meyer" }]
 keywords = ["taskwarrior", "time-tracking", "tui", "cli"]
 requires-python = ">=3.11"
-dependencies = ["textual>=0.80"]
+dependencies = ["textual>=0.80", "typer>=0.12"]
 
 [project.urls]
 Homepage = "https://github.com/JeromeM/Tasktally"
