@@ -44,12 +44,23 @@ def report_list(filter_args):
     print_rows(formatted)
 
 
+USAGE = """usage: tally                    open the interactive view
+       tally today | yesterday  print the daily report
+       tally list [filter...]   print tasks matching a Taskwarrior filter"""
+
+
 def main():
     args = sys.argv[1:]
-    if args[:1] == ["--day"] and len(args) == 2 and args[1] in ("today", "yesterday"):
-        report_day(0 if args[1] == "today" else 1)
+    if not args:
+        from .tui import main as tui_main
+        tui_main()
+    elif args == ["today"] or args == ["yesterday"]:
+        report_day(0 if args[0] == "today" else 1)
+    elif args[0] == "list":
+        report_list(args[1:])
     else:
-        report_list(args)
+        print(USAGE)
+        sys.exit(0 if args[0] in ("-h", "--help") else 1)
 
 
 if __name__ == "__main__":
