@@ -86,9 +86,9 @@ class ConfirmScreen(ModalScreen[bool]):
 class TaskApp(App):
     TITLE = "Task Tools"
     CSS = """
-    #day-title, .pane-title { padding: 0 1; background: $boost; text-style: bold; }
+    #day-title, .pane-title { padding: 0 1; background: $boost; text-style: bold; color: $accent; }
     #day { height: auto; min-height: 3; max-height: 50%; margin-bottom: 1; }
-    #bottom { height: 1fr; }
+    #bottom { height: 1fr; border-top: solid $primary; padding-top: 1; }
     #tags-pane { width: 34; }
     #todo-pane { width: 1fr; }
     DataTable { height: 1fr; scrollbar-size-vertical: 1; }
