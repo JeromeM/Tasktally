@@ -91,7 +91,7 @@ class TaskApp(App):
     #bottom { height: 1fr; }
     #tags-pane { width: 34; }
     #todo-pane { width: 1fr; }
-    DataTable { height: 1fr; }
+    DataTable { height: 1fr; scrollbar-size-vertical: 1; }
     PromptScreen, ConfirmScreen { align: center middle; }
     .dialog { width: 70; height: auto; padding: 1 2; border: thick $accent; background: $surface; }
     .dialog-title { text-style: bold; margin-bottom: 1; }
@@ -159,7 +159,7 @@ class TaskApp(App):
         if "Description" in headers:
             flex = headers.index("Description")
             fixed = sum(w for i, w in enumerate(widths) if i != flex)
-            widths[flex] = max(20, table.size.width - fixed - 2 * table.cell_padding * len(headers) - 2)
+            widths[flex] = max(20, table.size.width - fixed - 2 * table.cell_padding * len(headers) - 1)
         table.clear(columns=True)
         for label, width in zip(headers, widths):
             table.add_column(label, width=width)
