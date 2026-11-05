@@ -83,7 +83,7 @@ class TaskApp(App):
     #bottom { height: 1fr; }
     #tags-pane { width: 34; }
     #todo-pane { width: 1fr; }
-    DataTable { height: 1fr; overflow-x: hidden; }
+    DataTable { height: 1fr; }
     PromptScreen, ConfirmScreen { align: center middle; }
     .dialog { width: 70; height: auto; padding: 1 2; border: thick $accent; background: $surface; }
     .dialog-title { text-style: bold; margin-bottom: 1; }
