@@ -29,6 +29,14 @@ def tags_cell(tags):
     return Text(" ".join(f"+{tag}" for tag in tags), style="magenta")
 
 
+COLUMNS = {
+    "day": ("", "ID", "Time", "h", "Description", "Tags"),
+    "tags": ("Tag", "Time", "h"),
+    "todo": ("", "ID", "Spent", "h", "Description", "Tags"),
+}
+MAX_WIDTH = {"Tags": 16}
+
+
 class PromptScreen(ModalScreen[str | None]):
     BINDINGS = [Binding("escape", "cancel", "Cancel")]
 
@@ -124,11 +132,11 @@ class TaskApp(App):
         yield Footer()
 
     def on_mount(self):
-        self.query_one("#day", DataTable).add_columns("", "ID", "Time", "h", "Description", "Tags")
-        self.query_one("#tags", DataTable).add_columns("Tag", "Time", "h")
-        self.query_one("#todo", DataTable).add_columns("", "ID", "Spent", "h", "Description", "Tags")
-        self.reload()
+        self.call_after_refresh(self.reload)
         self.set_interval(20, self.reload)
+
+    def on_resize(self):
+        self.set_timer(0.05, self.reload)
 
     def on_descendant_focus(self, event):
         if event.widget.id in ("day", "todo"):
@@ -142,10 +150,21 @@ class TaskApp(App):
 
     def fill(self, table_id, rows):
         table = self.query_one(f"#{table_id}", DataTable)
-        keep = self.selected_uuid(table_id)
-        table.clear()
+        keep = self.selected_uuid(table_id) if table.columns else None
+        headers = COLUMNS[table_id]
+        widths = [
+            min(MAX_WIDTH.get(label, 999), max([len(label)] + [Text(c).cell_len if isinstance(c, str) else c.cell_len for c in (r[1][i] for r in rows)]))
+            for i, label in enumerate(headers)
+        ]
+        if "Description" in headers:
+            flex = headers.index("Description")
+            fixed = sum(w for i, w in enumerate(widths) if i != flex)
+            widths[flex] = max(20, table.size.width - fixed - 2 * table.cell_padding * len(headers) - 2)
+        table.clear(columns=True)
+        for label, width in zip(headers, widths):
+            table.add_column(label, width=width)
         for key, cells in rows:
-            table.add_row(*cells, key=key)
+            table.add_row(*(Text(c) if isinstance(c, str) else c for c in cells), key=key, height=None)
         if keep:
             try:
                 table.move_cursor(row=table.get_row_index(keep))
