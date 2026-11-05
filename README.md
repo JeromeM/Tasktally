@@ -2,14 +2,7 @@
 
 Daily time tracking on top of [Taskwarrior](https://taskwarrior.org): see how much time you spent on each task, yesterday and today, with totals per tag — from an interactive terminal UI or as a plain text report.
 
-```
- Today — Thursday 05 November    Total: 2h40 (2,7)
-
-    ID        Time   h    Description                 Tags
- ✓  7b2b8fa3  1h30   1,5  Upgrade certifi             +aikido
- ▶  1         0h42   0,7  Fix login bug               +sentry
- ‖  2         0h28   0,5  Review onboarding flow      +product
-```
+![Tasktally interactive view](docs/screenshot.svg)
 
 ## Features
 
