@@ -49,6 +49,7 @@ tally                       # open the interactive view
 tally summary               # yesterday, today and the to-do list
 tally today                 # text report for today
 tally yesterday             # text report for yesterday
+tally day 28/10             # text report for any day (also 2026-10-28, monday…)
 tally list status:pending   # list tasks matching any Taskwarrior filter
 tally setup                 # enable time tracking in ~/.taskrc (safe to rerun)
 tally --help                # all commands and options
@@ -75,7 +76,9 @@ alias today='tally summary'
 | `t` | add or remove time — `1h30`, `45min`, `-30min` |
 | `g` | edit tags — `+infra -aikido` |
 | `x` | delete (with confirmation) |
-| `y` | toggle today / yesterday |
+| `[` / `]` | previous / next day |
+| `.` | back to today |
+| `:` | go to a date — `2026-10-28`, `28/10`, `monday`, `yesterday` |
 | `q` | quit |
 
 ### Tracking time

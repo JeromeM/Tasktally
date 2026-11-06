@@ -2,6 +2,7 @@ import os
 import re
 import shutil
 import sys
+import datetime as dt
 from importlib import metadata
 from pathlib import Path
 from typing import Annotated
@@ -21,8 +22,8 @@ def print_rows(rows):
         print(f" {mark} {ident:>{id_w}}  {duration}{' ' * (16 - visible)}{desc}")
 
 
-def report_day(days_ago):
-    report = core.day_report(days_ago)
+def report_day(day):
+    report = core.day_report(day)
     if not report.rows:
         print(" Nothing.")
         return
@@ -58,9 +59,10 @@ def section(title):
 
 
 def summary():
-    for label, days_ago in (("📅 YESTERDAY", 1), ("📅 TODAY", 0)):
-        section(f"{label} — {core.day_start(days_ago).strftime('%A %d %B')}")
-        report_day(days_ago)
+    today = dt.date.today()
+    for label, day in (("📅 YESTERDAY", today - dt.timedelta(days=1)), ("📅 TODAY", today)):
+        section(f"{label} — {day.strftime('%A %d %B')}")
+        report_day(day)
     section("🟡 TO DO")
     report_list(["status:pending"])
     print()
@@ -121,13 +123,32 @@ def main_callback(
 @app.command()
 def today():
     """Print today's report: time per task and per tag."""
-    report_day(0)
+    report_day(dt.date.today())
 
 
 @app.command()
 def yesterday():
     """Print yesterday's report: time per task and per tag."""
-    report_day(1)
+    report_day(dt.date.today() - dt.timedelta(days=1))
+
+
+@app.command("day")
+def day_command(
+    date: Annotated[
+        str,
+        typer.Argument(
+            metavar="DATE",
+            show_default=False,
+            help="2026-10-28, 28/10, 28/10/2025, today, yesterday, or a weekday such as monday (the last one).",
+        ),
+    ],
+):
+    """Print the report of any day."""
+    day = core.parse_day(date)
+    if day is None:
+        raise typer.BadParameter("use YYYY-MM-DD, DD/MM, DD/MM/YYYY, today, yesterday or a weekday", param_hint="DATE")
+    print(f" {BOLD}{core.day_title(day)}{RESET}\n")
+    report_day(day)
 
 
 @app.command("summary")

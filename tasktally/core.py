@@ -2,7 +2,7 @@ import json
 import re
 import subprocess
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
 
 FMT = "%Y%m%dT%H%M%SZ"
 MANUAL = re.compile(r"^Tracked\s+(?P<sign>-)?\s*(?:(?P<h>\d+)h)?\s*(?:(?P<m>\d+)(?:min)?)?\s*$", re.IGNORECASE)
@@ -119,15 +119,56 @@ def day_time(task, window, now):
     return (parse(task["end"]) - parse(task["entry"])).total_seconds(), False
 
 
-def day_start(days_ago):
-    midnight = datetime.now().astimezone().replace(hour=0, minute=0, second=0, microsecond=0)
-    return midnight - timedelta(days=days_ago)
+WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
 
-def day_report(days_ago):
+def parse_day(text, today=None):
+    today = today or date.today()
+    text = text.strip().lower()
+    if text == "today":
+        return today
+    if text == "yesterday":
+        return today - timedelta(days=1)
+    for i, name in enumerate(WEEKDAYS):
+        if len(text) >= 3 and name.startswith(text):
+            return today - timedelta(days=(today.weekday() - i - 1) % 7 + 1)
+    guess_year = False
+    if match := re.fullmatch(r"(\d{4})-(\d{1,2})-(\d{1,2})", text):
+        year, month, day = map(int, match.groups())
+    elif match := re.fullmatch(r"(\d{1,2})[/.](\d{1,2})(?:[/.](\d{2}|\d{4}))?", text):
+        day, month = int(match[1]), int(match[2])
+        guess_year = not match[3]
+        year = int(match[3]) if match[3] else today.year
+        year += 2000 if year < 100 else 0
+    else:
+        return None
+    try:
+        result = date(year, month, day)
+    except ValueError:
+        return None
+    if guess_year and result > today:
+        result = result.replace(year=year - 1)
+    return result
+
+
+def day_title(day, today=None):
+    today = today or date.today()
+    full = day.strftime("%A %d %B %Y")
+    if day == today:
+        return f"Today — {full}"
+    if day == today - timedelta(days=1):
+        return f"Yesterday — {full}"
+    return full
+
+
+def day_start(day):
+    return datetime.combine(day, time()).astimezone()
+
+
+def day_report(day):
     now = datetime.now(timezone.utc)
-    start = day_start(days_ago)
-    window = (start, start + timedelta(days=1))
+    start = day_start(day)
+    window = (start, day_start(day + timedelta(days=1)))
     report = DayReport(start=start)
     tasks = export("(", "status:completed", "or", "status:pending", ")")
     for t in sorted(tasks, key=lambda t: t.get("end", t.get("start", t["entry"]))):
@@ -137,7 +178,7 @@ def day_report(days_ago):
             continue
         if ended:
             state = "done"
-        elif "start" in t and days_ago == 0:
+        elif "start" in t and day == date.today():
             state = "active"
         else:
             state = "paused"

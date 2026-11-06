@@ -1,3 +1,5 @@
+from datetime import date, timedelta
+
 from rich.text import Text
 from textual import on
 from textual.app import App, ComposeResult
@@ -108,7 +110,11 @@ class TaskApp(App):
         Binding("t", "time", "± Time"),
         Binding("g", "tags", "Tags"),
         Binding("x", "delete", "Delete"),
-        Binding("y", "toggle_day", "Today/Yesterday"),
+        Binding("left_square_bracket", "shift_day(-1)", "Prev day", key_display="["),
+        Binding("right_square_bracket", "shift_day(1)", "Next day", key_display="]"),
+        Binding("full_stop", "go_today", "Today", key_display=".", show=False),
+        Binding("colon", "go_to_date", "Go to date", key_display=":", show=False),
+        Binding("y", "shift_day(-1)", "Prev day", show=False),
         Binding("tab", "app.focus_next", "Switch zone", priority=True),
         Binding("r", "refresh", "Refresh", show=False),
         Binding("q", "quit", "Quit"),
@@ -116,7 +122,7 @@ class TaskApp(App):
 
     def __init__(self):
         super().__init__()
-        self.days_ago = 0
+        self.day = date.today()
         self.last_table = "day"
 
     def compose(self) -> ComposeResult:
@@ -176,16 +182,15 @@ class TaskApp(App):
 
     def reload(self):
         try:
-            report = core.day_report(self.days_ago)
+            report = core.day_report(self.day)
             todo = core.task_list("status:pending")
         except core.TaskError as err:
             self.notify(str(err), severity="error")
             return
 
-        label = "Today" if self.days_ago == 0 else "Yesterday"
         total = ("" if report.exact else "~") + core.fmt_duration(report.total)
         self.query_one("#day-title", Static).update(
-            f"{label} — {report.start.strftime('%A %d %B')}    Total: {total}    [dim](y to switch)[/dim]"
+            f"{core.day_title(self.day)}    Total: {total}    [dim]([ ] browse days · . today · : go to date)[/dim]"
         )
         self.fill("day", [
             (r.uuid, (STATE_ICONS[r.state], r.ident, *duration_cells(r.seconds, r.exact, "0min"),
@@ -295,9 +300,30 @@ class TaskApp(App):
 
         self.push_screen(ConfirmScreen(f"Delete “{task['description']}”?"), confirmed)
 
-    def action_toggle_day(self):
-        self.days_ago = 1 - self.days_ago
+    def show_day(self, day):
+        if day > date.today():
+            self.notify("No time travel to the future", severity="warning")
+            return
+        self.day = day
         self.reload()
+
+    def action_shift_day(self, delta: int):
+        self.show_day(self.day + timedelta(days=delta))
+
+    def action_go_today(self):
+        self.show_day(date.today())
+
+    def action_go_to_date(self):
+        def chosen(text):
+            if not text:
+                return
+            day = core.parse_day(text)
+            if day is None:
+                self.notify("Use 2026-10-28, 28/10, yesterday or a weekday", severity="error")
+            else:
+                self.show_day(day)
+
+        self.push_screen(PromptScreen("Go to date", "2026-10-28, 28/10, monday, yesterday…"), chosen)
 
     def action_refresh(self):
         self.reload()
